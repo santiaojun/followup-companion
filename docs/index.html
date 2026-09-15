@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FollowUp Companion — AI-Powered Post-Care Call Intelligence</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* Guava palette — warm cream ground, guava-green brand, coral for risk */
+      --sand:     #fbfaf3;
+      --cream:    #eaf7d8;
+      --amber:    #5fa61e;   /* brand green (formerly amber accent) */
+      --amber-lt: #bede8a;
+      --amber-dk: #3f7a12;
+      --slate:    #33402a;
+      --slate-lt: #5c6b52;
+      --slate-xlt:#8a9880;
+      --green:    #4c9a2a;
+      --green-lt: #e8f5d9;
+      --red:      #e8536a;
+      --red-lt:   #fdecef;
+      --coral:    #fa7370;
+      --coral-lt: #fef0ef;
+      --blush:    #feadbd;
+      --white:    #ffffff;
+      --shadow-sm: 0 2px 8px rgba(51,64,42,.08);
+      --shadow-md: 0 4px 20px rgba(51,64,42,.12);
+      --shadow-lg: 0 8px 40px rgba(51,64,42,.16);
+      --r:        12px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      background: var(--sand);
+      color: var(--slate);
+      line-height: 1.65;
+      font-size: 16px;
+    }
+
+    a { color: var(--amber-dk); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Nav ──────────────────────────────────────────────────────── */
+    nav {
+      background: var(--white);
+      border-bottom: 1px solid #e0edcb;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+    nav .inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      max-width: 1140px;
+      margin: 0 auto;
+    }
+    .nav-logo {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--slate);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-logo .dot {
+      width: 10px; height: 10px;
+      background: var(--amber);
+      border-radius: 50%;
+      display: inline-block;
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 28px;
+    }
+    nav ul li + li { margin-left: 28px; } /* fallback for renderers without flex gap */
+    nav ul { gap: 0; } /* let the margin fallback do the work consistently */
+    nav ul li a {
+      color: var(--slate-lt);
+      font-size: .9rem;
+      font-weight: 500;
+      transition: color .2s;
+    }
+    nav ul li a:hover { color: var(--amber-dk); text-decoration: none; }
+
+    /* ── Hero ─────────────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      background: linear-gradient(160deg, var(--cream) 0%, var(--sand) 55%, #fdf3f0 100%);
+      padding: 88px 24px 72px;
+      text-align: center;
+      border-bottom: 1px solid #e0edcb;
+      overflow: hidden;
+    }
+    .hero-mascot {
+      position: absolute;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .hero-mascot .glow {
+      position: absolute;
+      inset: -30%;
+      background: radial-gradient(circle, rgba(190,222,138,.55) 0%, rgba(190,222,138,0) 70%);
+      border-radius: 50%;
+    }
+    .hero-mascot img {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transform-origin: center bottom;
+    }
+    @keyframes mascot-bob {
+      0%   { transform: translateY(0) rotate(-3deg) scale(1); }
+      25%  { transform: translateY(-8px) rotate(0deg) scale(1.015); }
+      50%  { transform: translateY(-14px) rotate(3deg) scale(1.03); }
+      75%  { transform: translateY(-8px) rotate(0deg) scale(1.015); }
+      100% { transform: translateY(0) rotate(-3deg) scale(1); }
+    }
+    @keyframes glow-pulse {
+      0%, 100% { opacity: .75; transform: scale(1); }
+      50%      { opacity: 1; transform: scale(1.12); }
+    }
+
+    /* Three suns, varied size / position / depth / timing — a scattered,
+       organic cluster rather than one static logo-mark. Smaller = further
+       back (softer, slower); larger = closer (sharper, livelier). */
+    .mascot-1 { top: 20px;  right: 4%;   width: 236px; height: 236px; }
+    .mascot-3 { top: 230px; right: 0%;   width: 80px;  height: 80px;  opacity: .65; }
+    .mascot-4 { top: 130px; left: 3%;    width: 184px; height: 184px; opacity: .9; }
+
+    .mascot-1 img { animation: mascot-bob 5.5s ease-in-out infinite; }
+    .mascot-3 img { animation: mascot-bob 6.4s ease-in-out infinite; animation-delay: 1.4s; }
+    .mascot-4 img { animation: mascot-bob 3.6s ease-in-out infinite; animation-delay: .3s; }
+    .mascot-1 .glow { animation: glow-pulse 5.5s ease-in-out infinite; }
+    .mascot-3 .glow { animation: glow-pulse 6.4s ease-in-out infinite; animation-delay: 1.4s; }
+    .mascot-4 .glow { animation: glow-pulse 3.6s ease-in-out infinite; animation-delay: .3s; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hero-mascot img, .hero-mascot .glow { animation: none; }
+    }
+    @media (max-width: 700px) {
+      .mascot-1 { width: 110px; height: 110px; top: 14px; right: 4%; }
+      .mascot-3 { display: none; }
+      .mascot-4 { display: none; }
+    }
+    .hero-content {
+      position: relative;
+      z-index: 5;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      color: var(--slate);
+      line-height: 1.15;
+      margin-bottom: 20px;
+      letter-spacing: -.02em;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--amber-dk);
+    }
+    .hero .subtitle {
+      font-size: 1.15rem;
+      color: var(--slate-lt);
+      max-width: 560px;
+      margin: 0 auto 36px;
+    }
+    .hero-cta {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 13px 26px;
+      border-radius: var(--r);
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+      text-decoration: none;
+    }
+    .btn:hover { transform: translateY(-2px); text-decoration: none; }
+    .btn-primary {
+      background: var(--amber);
+      color: var(--white);
+      box-shadow: 0 4px 14px rgba(95,166,30,.35);
+    }
+    .btn-primary:hover { box-shadow: 0 6px 20px rgba(95,166,30,.45); }
+    .btn-outline {
+      background: transparent;
+      color: var(--slate);
+      border: 2px solid #ccc;
+    }
+    .btn-outline:hover { border-color: var(--amber); color: var(--amber-dk); }
+
+    /* ── Section base ─────────────────────────────────────────────── */
+    section { padding: 80px 0; }
+    .section-label {
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+      font-weight: 800;
+      color: var(--slate);
+      line-height: 1.25;
+      margin-bottom: 16px;
+    }
+    .section-desc {
+      font-size: 1.05rem;
+      color: var(--slate-lt);
+      max-width: 560px;
+      margin-bottom: 48px;
+    }
+
+    /* ── Problem ──────────────────────────────────────────────────── */
+    .problem { background: var(--white); }
+    .problem-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    @media (max-width: 980px) { .problem-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .problem-grid { grid-template-columns: 1fr; } }
+    .problem-card {
+      background: var(--sand);
+      border: 1px solid #e0edcb;
+      border-radius: var(--r);
+      padding: 28px 24px;
+    }
+    .problem-card .icon {
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+    }
+    .problem-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--slate);
+      margin-bottom: 8px;
+    }
+    .problem-card p {
+      font-size: .92rem;
+      color: var(--slate-lt);
+    }
+
+    /* ── Features ─────────────────────────────────────────────────── */
+    .features { background: var(--sand); }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    @media (max-width: 980px) { .features-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .features-grid { grid-template-columns: 1fr; } }
+    .feature-card {
+      background: var(--white);
+      border-radius: var(--r);
+      padding: 28px 24px;
+      box-shadow: var(--shadow-sm);
+      border-top: 3px solid transparent;
+      transition: box-shadow .2s, transform .2s;
+    }
+    .feature-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-3px);
+    }
+    .feature-card:nth-child(1) { border-color: var(--amber); }
+    .feature-card:nth-child(2) { border-color: var(--coral); }
+    .feature-card:nth-child(3) { border-color: #8bc148; }
+    .feature-card:nth-child(4) { border-color: #d98fa3; }
+    .feature-card .num {
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--slate-xlt);
+      margin-bottom: 8px;
+    }
+    .feature-card h3 {
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: var(--slate);
+      margin-bottom: 10px;
+    }
+    .feature-card p {
+      font-size: .91rem;
+      color: var(--slate-lt);
+    }
+
+    /* ── Chat demo ────────────────────────────────────────────────── */
+    .demo-section { background: var(--white); }
+    .demo-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+    .demo-tab {
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-size: .88rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all .15s;
+      background: var(--sand);
+      color: var(--slate-lt);
+    }
+    .demo-tab.active {
+      background: var(--amber);
+      color: var(--white);
+      border-color: var(--amber);
+    }
+    .demo-tab:hover:not(.active) {
+      border-color: var(--amber-lt);
+      color: var(--amber-dk);
+    }
+    .chat-window {
+      padding: 16px 18px 22px;
+      display: none;
+    }
+    .chat-window.active { display: block; }
+
+    /* ── Phone mockup shell ───────────────────────────────────────── */
+    .phone-mockup-wrap {
+      display: flex;
+      justify-content: center;
+    }
+    .phone-mockup {
+      position: relative;
+      width: 340px;
+      max-width: 100%;
+      background: #26301e;
+      border-radius: 40px;
+      padding: 14px 10px;
+      box-shadow: var(--shadow-lg), 0 0 0 2px #3b4a2c;
+    }
+    .phone-notch {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 84px;
+      height: 22px;
+      background: #26301e;
+      border-radius: 0 0 14px 14px;
+      z-index: 3;
+    }
+    .phone-screen {
+      position: relative;
+      background: var(--sand);
+      border-radius: 28px;
+      overflow: hidden;
+      min-height: 520px;
+      display: flex;
+      flex-direction: column;
+    }
+    .phone-status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px 8px;
+      font-size: .72rem;
+      font-weight: 700;
+      color: var(--slate-lt);
+    }
+    .phone-call-banner {
+      margin: 0 16px 8px;
+      background: var(--green-lt);
+      color: var(--green);
+      border-radius: 10px;
+      padding: 7px 12px;
+      font-size: .74rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .phone-call-banner .live-dot {
+      width: 7px; height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: live-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes live-pulse {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: .35; }
+    }
+    .phone-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 4px 8px;
+    }
+    .phone-home-indicator {
+      width: 120px;
+      height: 4px;
+      background: #a7b394;
+      border-radius: 3px;
+      margin: 10px auto 2px;
+    }
+    @media (max-width: 460px) {
+      .phone-mockup { width: 100%; }
+    }
+
+    .chat-msg {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 16px;
+      max-width: 80%;
+    }
+    .chat-msg.agent { align-self: flex-start; align-items: flex-start; }
+    .chat-msg.patient { align-self: flex-end; align-items: flex-end; margin-left: auto; }
+
+    .chat-msgs { display: flex; flex-direction: column; }
+
+    .bubble {
+      padding: 11px 16px;
+      border-radius: 14px;
+      font-size: .92rem;
+      line-height: 1.5;
+      max-width: 100%;
+    }
+    .agent .bubble {
+      background: var(--white);
+      color: var(--slate);
+      border-bottom-left-radius: 4px;
+      box-shadow: var(--shadow-sm);
+    }
+    .patient .bubble {
+      background: var(--blush);
+      color: #5c2a35;
+      border-bottom-right-radius: 4px;
+    }
+    .speaker-label {
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      color: var(--slate-xlt);
+    }
+    .patient .speaker-label { text-align: right; color: #c65f74; }
+
+    .verdict {
+      margin-top: 24px;
+      padding: 14px 18px;
+      border-radius: var(--r);
+      font-size: .92rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .verdict.accept {
+      background: var(--green-lt);
+      color: var(--green);
+      border: 1px solid #b2ddc8;
+    }
+    .verdict.triage {
+      background: var(--red-lt);
+      color: var(--red);
+      border: 1px solid #f1bfbb;
+    }
+    .verdict .vdetail {
+      font-weight: 400;
+      font-size: .85rem;
+      margin-top: 2px;
+      opacity: .85;
+    }
+
+    /* ── Tech rigor ───────────────────────────────────────────────── */
+    .tech { background: var(--sand); }
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+    @media (max-width: 700px) { .tech-grid { grid-template-columns: 1fr; } }
+    .tech-card {
+      background: var(--white);
+      border-radius: var(--r);
+      padding: 28px 24px;
+      box-shadow: var(--shadow-sm);
+    }
+    .tech-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--slate);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tech-card p {
+      font-size: .91rem;
+      color: var(--slate-lt);
+      margin-bottom: 12px;
+    }
+    .code-snippet {
+      background: #1e2530;
+      color: #a8c0d6;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: .78rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .code-snippet .kw  { color: #c792ea; }
+    .code-snippet .fn  { color: #82aaff; }
+    .code-snippet .str { color: #c3e88d; }
+    .code-snippet .cmt { color: #546e7a; font-style: italic; }
+    .code-snippet .ok  { color: #4ec9b0; font-weight: 700; }
+    .code-snippet .err { color: #f07178; font-weight: 700; }
+    .code-snippet .num { color: #f78c6c; }
+
+    .test-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--green-lt);
+      color: var(--green);
+      border-radius: 20px;
+      font-size: .78rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+    .test-pill.fail {
+      background: var(--red-lt);
+      color: var(--red);
+    }
+
+    .screenshot-placeholder {
+      background: #f2f7e8;
+      border: 2px dashed #cddcb0;
+      border-radius: 8px;
+      padding: 28px;
+      text-align: center;
+      color: var(--slate-xlt);
+      font-size: .85rem;
+    }
+    .screenshot-placeholder .ph-icon { font-size: 2rem; margin-bottom: 8px; }
+
+    /* ── Architecture ─────────────────────────────────────────────── */
+    .arch { background: var(--white); }
+    .pipeline {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    .pipeline-step {
+      flex: 1;
+      min-width: 120px;
+      background: var(--sand);
+      border: 1px solid #e0edcb;
+      border-radius: 0;
+      padding: 18px 14px;
+      text-align: center;
+      position: relative;
+    }
+    .pipeline-step:first-child { border-radius: var(--r) 0 0 var(--r); }
+    .pipeline-step:last-child  { border-radius: 0 var(--r) var(--r) 0; }
+    .pipeline-step + .pipeline-step { border-left: none; }
+    .pipeline-step:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      right: -14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0; height: 0;
+      border-top: 14px solid transparent;
+      border-bottom: 14px solid transparent;
+      border-left: 14px solid #e0edcb;
+      z-index: 1;
+    }
+    .pipeline-step:not(:last-child)::before {
+      content: "";
+      position: absolute;
+      right: -12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0; height: 0;
+      border-top: 13px solid transparent;
+      border-bottom: 13px solid transparent;
+      border-left: 13px solid var(--sand);
+      z-index: 2;
+    }
+    .step-num {
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 6px;
+    }
+    .step-name {
+      font-size: .82rem;
+      font-weight: 700;
+      color: var(--slate);
+      margin-bottom: 4px;
+    }
+    .step-desc {
+      font-size: .74rem;
+      color: var(--slate-xlt);
+    }
+
+    /* ── Footer ───────────────────────────────────────────────────── */
+    footer {
+      background: var(--slate);
+      color: #c3d4ac;
+      padding: 56px 24px 36px;
+      text-align: center;
+    }
+    footer .footer-logo {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+    footer .footer-tagline {
+      font-size: .9rem;
+      margin-bottom: 32px;
+      color: #96a888;
+    }
+    .footer-cta {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 36px;
+    }
+    .btn-footer-primary {
+      background: var(--amber);
+      color: var(--white);
+      box-shadow: 0 4px 14px rgba(95,166,30,.35);
+    }
+    .btn-footer-outline {
+      background: transparent;
+      color: #c3d4ac;
+      border: 2px solid #4a5a3c;
+    }
+    .btn-footer-outline:hover { border-color: var(--amber-lt); color: var(--amber-lt); }
+    footer hr { border: none; border-top: 1px solid #455236; margin-bottom: 24px; }
+    footer .fine-print {
+      font-size: .8rem;
+      color: #7d8d6c;
+    }
+
+    /* ── Responsive ───────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      nav ul { display: none; }
+      .pipeline { flex-direction: column; }
+      .pipeline-step { min-width: unset; border-radius: 0; border-left: 1px solid #e0edcb; }
+      .pipeline-step:first-child { border-radius: var(--r) var(--r) 0 0; }
+      .pipeline-step:last-child  { border-radius: 0 0 var(--r) var(--r); }
+      .pipeline-step::after, .pipeline-step::before { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Nav ──────────────────────────────────────────────────────── -->
+  <nav>
+    <div class="inner">
+      <div class="nav-logo">
+        <span class="dot"></span>
+        FollowUp Companion
+      </div>
+      <ul>
+        <li><a href="#problem">Problem</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#demo">Demo</a></li>
+        <li><a href="#tech">Tech</a></li>
+        <li><a href="https://github.com/your-org/followup-companion">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ── Hero ─────────────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-mascot mascot-1" aria-hidden="true">
+      <div class="glow"></div>
+      <img src="assets/mascot-sun.png" alt="" />
+    </div>
+    <div class="hero-mascot mascot-3" aria-hidden="true">
+      <div class="glow"></div>
+      <img src="assets/mascot-sun.png" alt="" />
+    </div>
+    <div class="hero-mascot mascot-4" aria-hidden="true">
+      <div class="glow"></div>
+      <img src="assets/mascot-sun.png" alt="" />
+    </div>
+    <div class="hero-content">
+      <h1>Post-care calls that <em>actually listen</em>.</h1>
+      <p class="subtitle">
+        FollowUp Companion uses a multi-stage AI pipeline to turn routine
+        discharge follow-up calls into a structured safety net — catching
+        subtle risk signals that scripted IVR systems miss entirely.
+      </p>
+      <div class="hero-cta">
+        <a href="#demo" class="btn btn-primary">
+          &#9654; See it in action
+        </a>
+        <a href="https://github.com/your-org/followup-companion" class="btn btn-outline">
+          &#xe0c0; View on GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Problem ──────────────────────────────────────────────────── -->
+  <section class="problem" id="problem">
+    <div class="container">
+      <div class="section-label">The Problem</div>
+      <h2 class="section-title">Traditional follow-up calls fail patients at the moment they need help most.</h2>
+      <p class="section-desc">
+        Post-discharge readmission is a leading cause of preventable harm. Existing
+        automated call systems are rigid, transactional, and completely blind to
+        the nuanced distress signals patients actually express.
+      </p>
+      <div class="problem-grid">
+        <div class="problem-card">
+          <div class="icon">&#129302;</div>
+          <h3>Robotic &amp; Impersonal</h3>
+          <p>Scripted IVR trees force patients into yes/no answers, discarding
+             free-text responses where real concerns live.</p>
+        </div>
+        <div class="problem-card">
+          <div class="icon">&#128270;</div>
+          <h3>Missed Subtle Signals</h3>
+          <p>Euphemistic phrases (&ldquo;I think I&rsquo;m just a burden&rdquo;,
+             &ldquo;I won&rsquo;t be needing those refills&rdquo;) evade keyword
+             detectors but clearly indicate risk to a trained clinician.</p>
+        </div>
+        <div class="problem-card">
+          <div class="icon">&#128200;</div>
+          <h3>No Symptom Probing</h3>
+          <p>When a patient mentions pain, standard scripts move on.
+             Location, quality, and duration — the triage essentials — go uncollected.</p>
+        </div>
+        <div class="problem-card">
+          <div class="icon">&#128203;</div>
+          <h3>Zero Auditability</h3>
+          <p>Call outcomes are a binary checked/unchecked. There is no record
+             of <em>why</em> a case was escalated or cleared, leaving clinicians with
+             no context when reviewing flagged patients.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Features ─────────────────────────────────────────────────── -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-label">Core Features</div>
+      <h2 class="section-title">Four layers of intelligence, built from first principles.</h2>
+      <p class="section-desc">
+        Each capability addresses a specific gap in the existing follow-up workflow,
+        working in concert rather than as isolated modules.
+      </p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="num">Feature 01</div>
+          <h3>Personalised Communication Profile</h3>
+          <p>Before every call, a <strong>CallPlanner</strong> agent reads the patient&rsquo;s
+             RAG-retrieved history to build a bespoke script — tone directives,
+             priority questions, opening — injected live into the CALL-E conversation
+             task. No two scripts are identical.</p>
+        </div>
+        <div class="feature-card">
+          <div class="num">Feature 02</div>
+          <h3>Dual-Path Risk Detection</h3>
+          <p>Transcripts pass through <strong>six arbitration dimensions</strong>
+             in sequence: medication adherence, pain severity, emotional distress,
+             acute risk, behavioural indicators, and sentinel phrases. Each dimension
+             votes independently; a single high-confidence signal is sufficient to
+             trigger escalation.</p>
+        </div>
+        <div class="feature-card">
+          <div class="num">Feature 03</div>
+          <h3>Tiered Confirmation Gate</h3>
+          <p>Uncertain signals (medium confidence) don&rsquo;t auto-escalate. A
+             <strong>ConfirmationGate</strong> re-reads the transcript with targeted
+             follow-up probes, raising or lowering confidence before a final
+             ACCEPT / TRIAGE_RISK verdict is issued. False positives are
+             dramatically reduced.</p>
+        </div>
+        <div class="feature-card">
+          <div class="num">Feature 04</div>
+          <h3>Traceable Decision Records</h3>
+          <p>Every verdict includes the <strong>dimension that fired</strong>,
+             the evidence extracted, and the confidence chain. Clinicians reviewing
+             flagged cases see exactly what the AI heard and why it escalated —
+             not just a flag.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Pipeline architecture ─────────────────────────────────────── -->
+  <section class="arch" id="architecture">
+    <div class="container">
+      <div class="section-label">Architecture</div>
+      <h2 class="section-title">Seven-stage call pipeline.</h2>
+      <p class="section-desc">
+        Each stage is independently testable and can fail gracefully
+        without invalidating downstream results.
+      </p>
+      <div class="pipeline">
+        <div class="pipeline-step">
+          <div class="step-num">Stage 0</div>
+          <div class="step-name">Call Plan</div>
+          <div class="step-desc">CallPlanner builds personalised script + probe rules</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">Stage 1</div>
+          <div class="step-name">Initiate</div>
+          <div class="step-desc">CALL-E outbound call with injected task + schema</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">Stage 2</div>
+          <div class="step-name">Poll</div>
+          <div class="step-desc">Wait for completed status + transcript</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">Stage 3</div>
+          <div class="step-name">Extract</div>
+          <div class="step-desc">SymptomExtractor parses free-text into structured fields</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">Stage 4</div>
+          <div class="step-name">Arbitrate</div>
+          <div class="step-desc">Six-dimension waterfall decision gate</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">Stage 5</div>
+          <div class="step-name">Probe</div>
+          <div class="step-desc">Symptom probe validates coverage of required dimensions</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">Stage 6</div>
+          <div class="step-name">Confirm</div>
+          <div class="step-desc">ConfirmationGate refines uncertain signals</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Chat Demo ─────────────────────────────────────────────────── -->
+  <section class="demo-section" id="demo">
+    <div class="container">
+      <div class="section-label">Live Scenarios</div>
+      <h2 class="section-title">See the pipeline handle real conversations.</h2>
+      <p class="section-desc">
+        Two representative call transcripts — one routine, one flagged —
+        showing how the system responds to different patient presentations.
+      </p>
+
+      <div class="demo-tabs">
+        <button class="demo-tab active" onclick="showDemo('arm-pain')">
+          Scenario A &mdash; Arm Pain Probe
+        </button>
+        <button class="demo-tab" onclick="showDemo('farewell')">
+          Scenario B &mdash; Behavioural Risk Signal
+        </button>
+      </div>
+
+      <div class="phone-mockup-wrap">
+      <div class="phone-mockup">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="phone-status-bar">
+            <span>9:41</span>
+            <span>CALL&#8209;E &bull; FollowUp Companion</span>
+            <span>&#128267;</span>
+          </div>
+          <div class="phone-call-banner">
+            <span class="live-dot"></span> Call in progress &mdash; 03:12
+          </div>
+          <div class="phone-body">
+
+      <!-- Scenario A: arm pain → probe → ACCEPT -->
+      <div class="chat-window active" id="demo-arm-pain">
+        <div class="chat-msgs">
+
+          <div class="chat-msg agent">
+            <div class="speaker-label">AI Agent</div>
+            <div class="bubble">Hi, this is a follow-up call for Maria Chen after her recent visit. How are you feeling today?</div>
+          </div>
+
+          <div class="chat-msg patient">
+            <div class="speaker-label">Patient</div>
+            <div class="bubble">I'm okay, but my arm has been hurting a bit since the procedure.</div>
+          </div>
+
+          <div class="chat-msg agent">
+            <div class="speaker-label">AI Agent &mdash; PAIN PROBE TRIGGERED</div>
+            <div class="bubble">I'm sorry to hear that. Can you tell me exactly <strong>where on your arm</strong> the pain is — is it near the incision site, or somewhere else?</div>
+          </div>
+
+          <div class="chat-msg patient">
+            <div class="speaker-label">Patient</div>
+            <div class="bubble">It's right at the incision, on the inside of my elbow.</div>
+          </div>
+
+          <div class="chat-msg agent">
+            <div class="speaker-label">AI Agent</div>
+            <div class="bubble">Thank you. How would you describe the sensation — is it sharp, dull, burning, or throbbing?</div>
+          </div>
+
+          <div class="chat-msg patient">
+            <div class="speaker-label">Patient</div>
+            <div class="bubble">More like a dull ache. Sometimes a little throbbing.</div>
+          </div>
+
+          <div class="chat-msg agent">
+            <div class="speaker-label">AI Agent</div>
+            <div class="bubble">Got it. And approximately how long has this been bothering you — did it start right after the procedure, or more recently?</div>
+          </div>
+
+          <div class="chat-msg patient">
+            <div class="speaker-label">Patient</div>
+            <div class="bubble">Pretty much since the day after. So about three days now.</div>
+          </div>
+
+          <div class="chat-msg agent">
+            <div class="speaker-label">AI Agent</div>
+            <div class="bubble">That sounds within the normal healing range. Are you taking your prescribed pain medication as directed?</div>
+          </div>
+
+          <div class="chat-msg patient">
+            <div class="speaker-label">Patient</div>
+            <div class="bubble">Yes, twice a day with food. It helps.</div>
+          </div>
+
+        </div>
+
+        <div class="verdict accept">
+          <span style="font-size:1.4rem">&#10003;</span>
+          <div>
+            <div>Decision: <strong>ACCEPT</strong> &mdash; Routine Post-Op Pain</div>
+            <div class="vdetail">Pain probe complete (location &#10003;, quality &#10003;, duration &#10003;). Medication adherent. No acute risk signals across 6 dimensions. No escalation required.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scenario B: farewell language → TRIAGE_RISK -->
+      <div class="chat-window" id="demo-farewell">
+        <div class="chat-msgs">
+
+          <div class="chat-msg agent">
+            <div class="speaker-label">AI Agent</div>
+            <div class="bubble">Hi, this is a follow-up call for James Reyes. How are you doing since your last appointment?</div>
+          </div>
+
+          <div class="chat-msg patient">
+            <div class="speaker-label">Patient</div>
+            <div class="bubble">I suppose I'm getting by. I've been trying to tie up some loose ends.</div>
+          </div>
+
+          <div class="chat-msg agent">
+            <div class="speaker-label">AI Agent</div>
+            <div class="bubble">That's good to hear you're staying busy. Are you experiencing any pain or discomfort that's changed since we last spoke?</div>
+          </div>
+
+          <div class="chat-msg patient">
+            <div class="speaker-label">Patient</div>
+            <div class="bubble">Not really. I've been giving some things away to family. It just feels like the right time.</div>
+          </div>
+
+          <div class="chat-msg agent">
+            <div class="speaker-label">AI Agent</div>
+            <div class="bubble">I notice you mentioned giving things away — I want to make sure you're okay. Are you having any thoughts of hurting yourself or not wanting to be here anymore?</div>
+          </div>
+
+          <div class="chat-msg patient">
+            <div class="speaker-label">Patient</div>
+            <div class="bubble">I wouldn't call it that. I just don't want to be a burden on everyone. I think they'd be better off.</div>
+          </div>
+
+          <div class="chat-msg agent">
+            <div class="speaker-label">AI Agent</div>
+            <div class="bubble">Thank you for sharing that with me, James. I want you to know we care about you, and what you're describing is something your care team should hear about right away.</div>
+          </div>
+
+        </div>
+
+        <div class="verdict triage">
+          <span style="font-size:1.4rem">&#9888;</span>
+          <div>
+            <div>Decision: <strong>TRIAGE_RISK</strong> &mdash; Marked for Human Review</div>
+            <div class="vdetail">Behavioural dimension fired: &ldquo;giving things away&rdquo; + &ldquo;burden&rdquo; + &ldquo;better off&rdquo; — sentinel phrase cluster (confidence 0.91). Confirmation gate elevated to HIGH. Escalated to care coordinator queue.</div>
+          </div>
+        </div>
+      </div>
+
+          </div>
+          <div class="phone-home-indicator"></div>
+        </div>
+      </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Tech Rigor ─────────────────────────────────────────────────── -->
+  <section class="tech" id="tech">
+    <div class="container">
+      <div class="section-label">Technical Rigour</div>
+      <h2 class="section-title">Safety-critical tests that are designed to fail.</h2>
+      <p class="section-desc">
+        The evaluation suite includes adversarial cases engineered to break
+        the pipeline &mdash; confirming that safety boundaries hold, not just
+        the happy path.
+      </p>
+      <div class="tech-grid">
+
+        <div class="tech-card">
+          <h3>&#128307; Red-Team Test: Suppressed Risk Signal</h3>
+          <p>
+            We deliberately construct transcripts where a high-risk phrase is
+            embedded in an otherwise benign call and confirm that the
+            <code>risk_signal</code> dimension fires regardless of surrounding context.
+          </p>
+          <div style="margin-bottom:12px">
+            <span class="test-pill fail">&#10007; Without fix: ACCEPT (false negative)</span>
+            <span class="test-pill">&#10003; After fix: TRIAGE_RISK</span>
+          </div>
+          <div class="code-snippet"><span class="cmt"># arbitration/dimensions/risk_signal.py</span>
+<span class="kw">def</span> <span class="fn">evaluate</span>(transcript: str) -&gt; DimensionVerdict:
+    signals = _scan_sentinel_phrases(transcript)
+    <span class="kw">if</span> signals:
+        <span class="kw">return</span> DimensionVerdict(
+            dimension=<span class="str">"risk_signal"</span>,
+            outcome=Outcome.TRIAGE_RISK,
+            confidence=<span class="num">0.95</span>,
+            evidence=signals,
+        )
+    <span class="kw">return</span> DimensionVerdict(outcome=Outcome.ACCEPT, <span class="err">...</span>)</div>
+        </div>
+
+        <div class="tech-card">
+          <h3>&#128301; Test Coverage Philosophy</h3>
+          <p>
+            Mock-free testing where possible: the CALL-E client test suite patches
+            at the SDK layer, not at the HTTP layer, so transport serialisation
+            bugs are caught before they reach production.
+          </p>
+          <div style="margin-bottom:12px">
+            <span class="test-pill">&#10003; 41 unit tests</span>
+            <span class="test-pill">&#10003; SDK-level mocks</span>
+            <span class="test-pill">&#10003; Idempotency verified</span>
+          </div>
+          <div class="code-snippet"><span class="cmt"># test: custom task_description bypasses template</span>
+req = CallRequest(
+    <span class="str">"PAT-001"</span>, <span class="str">"+18005551234"</span>, <span class="str">"SCRIPT-A"</span>,
+    task_description=<span class="str">"Custom probe: ask pain location."</span>,
+)
+client.initiate_call(req)
+kwargs = _capture_create_kwargs(mock_sdk_cls)
+<span class="ok">assert</span> kwargs[<span class="str">"task"</span>] == <span class="str">"Custom probe: ask pain location."</span></div>
+        </div>
+
+        <div class="tech-card">
+          <h3>&#127775; Probe Injection Audit</h3>
+          <p>
+            An integration test runs the full Stage&nbsp;0&#8594;Stage&nbsp;1 path
+            against a mock CALL-E and asserts that <code>PAIN</code> probe questions
+            appear verbatim in the injected task string &mdash; guaranteeing
+            the live AI cannot skip symptom follow-up questions.
+          </p>
+          <img src="pytest-screenshot.png"
+               alt="pytest -v providers/tests/ — 41 passed in 0.28s"
+               style="border-radius:8px;width:100%;display:block;box-shadow:0 2px 12px rgba(61,74,92,.12)" />
+        </div>
+
+        <div class="tech-card">
+          <h3>&#128736; Deterministic Idempotency</h3>
+          <p>
+            Every CALL-E request is issued with a deterministic idempotency key
+            derived from patient ID, script ID, and scheduled time.
+            Network retries never cause duplicate dials.
+          </p>
+          <div class="code-snippet"><span class="cmt"># providers/calle_client.py</span>
+idempotency_key = (
+    <span class="str">f"followup:{req.patient_id}"</span>
+    <span class="str">f":{req.call_script_id}"</span>
+    <span class="str">f":{req.scheduled_at_iso or _utcnow_iso()}"</span>
+)
+raw = self._sdk.calls.create(
+    task=task,
+    idempotency_key=idempotency_key,
+    <span class="err">...</span>
+)</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ──────────────────────────────────────────────────────── -->
+  <footer>
+    <div class="footer-logo">FollowUp Companion</div>
+    <div class="footer-tagline">Post-care calls that actually listen.</div>
+    <div class="footer-cta">
+      <a href="https://github.com/your-org/followup-companion" class="btn btn-footer-primary btn">
+        &#xe0c0; View on GitHub
+      </a>
+      <a href="#" class="btn btn-footer-outline btn">
+        &#9654; Watch Demo (coming soon)
+      </a>
+    </div>
+    <hr />
+    <div class="fine-print">
+      Built for a medical AI hackathon &mdash; 2026.
+      Not a medical device. Not for clinical use.
+      All patient names in demos are fictional.
+    </div>
+  </footer>
+
+  <script>
+    function showDemo(id) {
+      document.querySelectorAll('.chat-window').forEach(w => w.classList.remove('active'));
+      document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('demo-' + id).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+  </script>
+
+</body>
+</html>
