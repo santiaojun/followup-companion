@@ -1,6 +1,6 @@
 # FollowUp Companion
 
-**AI phone follow-up agent for chronic-disease and post-surgical patients(WEB AOGE: https://santiaojun.github.io/followup-companion/), built on [CALL-E](https://www.heycall-e.com/).**
+**AI phone follow-up agent for chronic-disease and post-surgical patients(WEB PAGE: https://santiaojun.github.io/followup-companion/), built on [CALL-E](https://www.heycall-e.com/).**
 
 FollowUp Companion places real follow-up phone calls, listens for both explicit and indirect risk signals, asks the clinically useful follow-up questions a scripted IVR would skip, and routes anything it isn't confident about to a human — instead of guessing.
 
